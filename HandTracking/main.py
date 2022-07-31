@@ -4,7 +4,6 @@ import time
 # import serial
 from paho.mqtt import client as mqtt
 
-
 """
 Detect tip of index finger, tip of thumb, calculate real-time distance between them.
 Send toggle signal every time distance crosses a threshold value.
@@ -26,32 +25,21 @@ def on_publish(client, userdata, mid):
 def on_message(client, userdata, message):
     print("Message received: ", str(message.payload.decode("utf-8")))
 
+client = mqtt.Client(client_id='')
+client.on_connect = on_connect
+client.on_disconnect = on_disconnect
+client.on_publish = on_publish
+client.on_message = on_message    
+client.connect('test.mosquitto.org', port=1883)
+client.loop_start()
+
+# Check flag to ensure toggle operations occurs only once for each condition
+check = 0
 
 curTime = 0
 prevTime = 0
 capture = cv2.VideoCapture(0)
 detector = handDetector()
-
-client = mqtt.Client(client_id='')
-client.on_connect = on_connect
-client.on_disconnect = on_disconnect
-client.on_publish = on_publish
-client.on_message = on_message
-
-# boardComm = serial.Serial(
-#     'COM9', # Active port connected to USB for serial communication with controller
-#     115200, # Baud rate for contrller
-# )
-
-# if not boardComm.is_open:
-#     boardComm.open()
-
-client.connect('test.mosquitto.org', port=1883)
-
-# Check flag to ensure toggle operations occurs only once for each condition
-check = 0
-
-client.loop_start()
 
 while True:
     success, image = capture.read()
@@ -72,11 +60,11 @@ while True:
         
         if distance < 50 and check:
             check = 0
-            client.publish('test/something', 'OFF')
+            client.publish('test/adidesh07', 'OFF')
             print('OFF')
         elif distance >= 50 and not check:
             check = 1
-            client.publish('test/something', 'ON')
+            client.publish('test/adidesh07', 'ON')
             print('ON')
 
     curTime = time.time()
